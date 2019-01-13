@@ -1,16 +1,17 @@
 /*
  * RGB_LED 
- * Arduino sketch ver 2.0
- * for WinApp ver 1.1.3 or higher
- * Author: Stanislav TEEN
+ * Arduino sketch ver 2.1
+ * for WinApp ver 1.1.2 or high
+ * Author: Stanislav TEEN Eshkov
  */
 // USER SETTINGS BLOCK
-#define PIN 4          // pin number
-#define MaxPixels 68   // number of pixeld
-
+#define PIN 4
+#define MaxPixels 68
+bool RandomColorInTest = true;
 // SYSTEM SETTINGS BLOCK
 bool isDebug = false;
 bool isDebugAll = true; // when false - debug CRC errors only
+int random_int;
 // END OF BLOCK
 
 #include <Adafruit_NeoPixel.h>
@@ -27,6 +28,7 @@ unsigned long bytes_total;
 bool isWait = true;
 //byte MaxBright;
 void setup() {
+  randomSeed(analogRead(0));
   Serial.begin(115200);
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
@@ -276,9 +278,15 @@ bool check_crc(byte data[],byte offset)
 
 void CheckTest()
 {
+  uint32_t p_color = strip.Color(255, 255, 255);
+  
+  if (RandomColorInTest)
+  {
+    p_color = get_random_color();
+  }
   for (int i=0; i<=MaxPixels; i++)
   {
-    strip.setPixelColor(i, strip.Color(255, 255, 255));
+    strip.setPixelColor(i, p_color);
     if(i>3) strip.setPixelColor(i-4, 0);
     strip.show();
     if (Serial.available() != 0)
@@ -291,9 +299,14 @@ void CheckTest()
       delay(15);
     }
   }
+  
+  if (RandomColorInTest)
+  {
+    p_color = get_random_color();
+  }
   for (int i=MaxPixels; i>=0; i--)
   {
-    strip.setPixelColor(i, strip.Color(255, 255, 255));
+    strip.setPixelColor(i, p_color);
     if(i<MaxPixels-3) strip.setPixelColor(i+4, 0);
     strip.show();
     if (Serial.available() != 0)
@@ -359,5 +372,12 @@ uint32_t Wheel(byte WheelPos) {
 void SoftReset()
 {
   asm volatile ("  jmp 0");
+}
+
+uint32_t get_random_color()
+{
+  return strip.Color((uint8_t)(random(255)), 
+                     (uint8_t)(random(255)), 
+                     (uint8_t)(random(255)));
 }
 
